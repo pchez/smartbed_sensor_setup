@@ -165,10 +165,7 @@ void* handle_client(void *arg)
 		    }
 		}*/
 
-	  	/*From here to end of current block, we parse buffer received and then convert
-		 *the tokens into floats, store the floats in the struct and then perform
-		 *some rudimentary addition of the struct values as proof of concept
-		 */
+		
 		//character array is stored in buffer
 		char* p;
 		p = strtok(buffer,",");
