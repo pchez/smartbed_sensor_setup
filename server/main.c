@@ -12,10 +12,13 @@
 #define PORTNO 5000
 
 static volatile int run_flag = 1;
+extern shared_array_index = 0;
+pthread_mutex_t lock;
 
 void do_when_interrupted()
 {
 	run_flag = 0;
+	pthread_mutex_destroy(&lock);
 	printf("\n Threads exiting. Please wait for cleanup operations to complete...\n");
 }
 
@@ -45,10 +48,7 @@ typedef struct client_data
 	
 } client_data;
 
-client_data TL = {.clientIP = "ip"};
-client_data TR = {.clientIP = "ip"};
-client_data BL = {.clientIP = "ip"};
-client_data BR = {.clientIP = "ip"};
+client_data sensors = {.clientIP = "ip"};
 
 void* manage_9dof(void *arg) 
 {
@@ -97,27 +97,18 @@ void* handle_client(void *arg)
 	int n, client_socket_fd;
 	char buffer[256], tmp[256];
 	
-	//FILE *fp;
-	
 	client = (CONNECTION *)arg;
 	client_socket_fd = client->sockfd;
 	memset(buffer, 0, 256);
 	
 	
-	if (TL.clientIP=="ip")
-		TL.clientIP = client->ip_addr_str;
-	else if (TR.clientIP=="ip")
-		TR.clientIP = client->ip_addr_str;
-	else if (BL.clientIP = "ip")
-		BL.clientIP = client->ip_addr_str;
-	else if (BR.clientIP = "ip")
-		BR.clientIP = client->ip_addr_str;
-
+	int index;						//private variable - each thread will have its own copy. this is the array index of client_data's arrays in which this thread will store into 
+	pthread_mutex_lock(&lock);		//begin critical section
+	index = shared_array_index;		//assign this shared variable to the private index variable so now each thread keeps track of its own unique index	
+	shared_array_index += 1;	//increment the shared variable - first thread to access this variable gets index=0, second thread gets index=1, etc
+	pthread_mutex_unlock(&lock);	//end critical section
 	
-	//sprintf(buffer, "output_file_IP_%s_TIMESTAMP_%u.csv", client->ip_addr_str, (unsigned)time(NULL));
-	//printf("filename: %s", buffer);
-	//fp = fopen(buffer, "wb");
-
+	
 	while (run_flag) {
 		// clear the buffer
 		memset(buffer, 0, 256);
@@ -135,10 +126,9 @@ void* handle_client(void *arg)
 			return NULL;
 		}
 
-				// print the message to console
+		// print the message to console
 		printf("%s says: %s\n", client->ip_addr_str, buffer);
-		printf("IPs connected: %s, %s, %s, %s ", TL.clientIP, TR.clientIP, BL.clientIP, BR.clientIP);
-		//fprintf(fp, "%s\n", buffer);
+		printf("index: %d\n", index);
 		
 		// send an acknowledgement back to the client saying that we received the message
 		memset(tmp, 0, sizeof(tmp));
@@ -174,20 +164,20 @@ void* handle_client(void *arg)
 		p = strtok(buffer,",");
 		if(p) {
     			//printf("\nFirst string: %f\n",atof(p));
-			TL.accel_data_x[0] = atof(p);
-			printf("\nFirst string: %f\n", TL.accel_data_x[0]);
+			sensors.accel_data_x[index] = atof(p);
+			//printf("First string: %f\n", sensors.accel_data_x[index]);
 		}
 		p = strtok(NULL,",");
 		if(p) {
-		    	TL.accel_data_y[0] = atof(p);
-    			printf("Next string: %f\n",TL.accel_data_y[0]);
+		    	sensors.accel_data_y[index] = atof(p);
+    			//printf("Next string: %f\n",sensors.accel_data_y[index]);
 		}
 				
-		float sum;
-	        printf("SUM: %f\n", TL.accel_data_x[0]+TL.accel_data_y[0]);	
+		//float sum;
+	    //printf("SUM: %f\n", sensors.accel_data_x[index]+sensors.accel_data_y[index]);	
+	    printf("client_data contains: thread1=[%f, %f] thread2=[%f, %f]\n\n", sensors.accel_data_x[0], sensors.accel_data_y[0], sensors.accel_data_x[1], sensors.accel_data_y[1]);
 	}
 
-	//fclose(fp);
 	close(client_socket_fd);
 	return NULL;
 }
@@ -239,6 +229,14 @@ int main(int argc, char **argv)
 
 	signal(SIGINT, do_when_interrupted);
 
+	//initialize the mutex
+	if (pthread_mutex_init(&lock, NULL)!=0)
+	{
+		printf("mutex init failed\n");
+		return 1;
+	}
+	
+	//create threads
 	rc = pthread_create(&manage_9dof_tid, NULL, manage_9dof, NULL);
 	if (rc != 0) {
 		fprintf(stderr, "Failed to create manage_9dof thread. Exiting Program.\n");
