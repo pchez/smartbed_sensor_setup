@@ -102,9 +102,9 @@ void* handle_client(void *arg)
 	memset(buffer, 0, 256);
 	
 	
-	int index;			//private variable - each thread will have its own copy. this is the array index of client_data's arrays in which this thread will store into 
-	pthread_mutex_lock(&lock);	//begin critical section
-	index = shared_array_index;	//assign this shared variable to the private index variable so now each thread keeps track of its own unique index	
+	int index;						//private variable - each thread will have its own copy. this is the array index of client_data's arrays in which this thread will store into 
+	pthread_mutex_lock(&lock);		//begin critical section
+	index = shared_array_index;		//assign this shared variable to the private index variable so now each thread keeps track of its own unique index	
 	shared_array_index += 1;	//increment the shared variable - first thread to access this variable gets index=0, second thread gets index=1, etc
 	pthread_mutex_unlock(&lock);	//end critical section
 	
@@ -174,7 +174,7 @@ void* handle_client(void *arg)
 				
 		//float sum;
 	    //printf("SUM: %f\n", sensors.accel_data_x[index]+sensors.accel_data_y[index]);	
-	    printf("client_data contains: thread1=[%f, %f] thread2=[%f, %f], thread3=[%f, %f], thread4=[%f, %f]\n\n", sensors.accel_data_x[0], sensors.accel_data_y[0], sensors.accel_data_x[1], sensors.accel_data_y[1], sensors.accel_data_x[2], sensors.accel_data_y[2], sensors.accel_data_x[3], sensors.accel_data_y[3]);
+	    printf("client_data contains: thread1=[%f, %f] thread2=[%f, %f]\n\n", sensors.accel_data_x[0], sensors.accel_data_y[0], sensors.accel_data_x[1], sensors.accel_data_y[1]);
 	}
 
 	close(client_socket_fd);
