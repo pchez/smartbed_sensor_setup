@@ -127,8 +127,7 @@ void* handle_client(void *arg)
 		}
 
 		// print the message to console
-		printf("%s says: %s\n", client->ip_addr_str, buffer);
-		printf("index: %d\n", index);
+		printf("%s says: %s ||| index: %d\n", client->ip_addr_str, buffer, index);
 		
 		// send an acknowledgement back to the client saying that we received the message
 		memset(tmp, 0, sizeof(tmp));
