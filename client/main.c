@@ -68,8 +68,8 @@ int client_handle_connection(int client_socket_fd, NINEDOF *ninedof)
 		//some control here based on Z axis accel (i.e. if accel >2gs, then someone sat
 		//in the bed or moved around, so start sending to server
 		*/////
-		if(ninedof->accel_data.z > 2 || ninedof->accel_data.z < -2) {
-		    sprintf(buffer, "%f,%f", pitch, roll)
+		if(ninedof->accel_data.z > 1 || ninedof->accel_data.z < -1) {
+		    sprintf(buffer, "%f,%f", pitch, roll);
 		}
 		/*****************/
 		
