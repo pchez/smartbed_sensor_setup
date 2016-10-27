@@ -129,13 +129,13 @@ void* handle_client(void *arg)
 			return NULL;
 		}
 		// no data was sent, assume the connection was terminated
-		/*if (n == 0) { 
+		if (n == 0) { 
 			printf("%s has terminated the connection.\n", client->ip_addr_str);
 			return NULL;
-		}*/
-		if (n==0) {
-		    printf("Waiting for client data\n");
 		}
+		/*if (n==0) {
+		    printf("Waiting for client data\n");
+		}*/
 
 		// print the message to console
 		printf("%s says: %s ||| index: %d\n", client->ip_addr_str, buffer, index);
@@ -144,13 +144,13 @@ void* handle_client(void *arg)
 		
 		//no need to send data back to client at this point
 
-		//memset(tmp, 0, sizeof(tmp));
-		//sprintf(tmp, "%s sent the server: %s", client->ip_addr_str, buffer);
-		//n = write(client_socket_fd, tmp, strlen(tmp));
-		/*if (n < 0) {
+		memset(tmp, 0, sizeof(tmp));
+		sprintf(tmp, "%s sent the server: %s", client->ip_addr_str, buffer);
+		n = write(client_socket_fd, tmp, strlen(tmp));
+		if (n < 0) {
 			server_error("ERROR writing to socket");
 			return NULL;
-		} */
+		}
 		
 
 		/*Code below can be used when we know how much data we are sending to the server!*/	
