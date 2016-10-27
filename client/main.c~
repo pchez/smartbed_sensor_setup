@@ -59,11 +59,11 @@ int client_handle_connection(int client_socket_fd, NINEDOF *ninedof)
 		ninedof_read(ninedof);
 
 		// print client 9DOF readings 
-		ninedof_print(ninedof);
+		//ninedof_print(ninedof);
 		
 		//calculate client 9DOF pitch and roll
-		pitch = -atan2(ninedof->accel_data.x, sqrt(pow(ninedof->accel_data.x,2)+pow(ninedof->accel_data.y,2)+pow(ninedof->accel_data.z,2)))*180/PI;
-		roll = atan2(ninedof->accel_data.y, sqrt(pow(ninedof->accel_data.x,2)+pow(ninedof->accel_data.y,2)+pow(ninedof->accel_data.z,2)))*180/PI;
+		pitch = -atan2(ninedof->accel_data.x, sqrt(pow(ninedof->accel_data.x,2)+pow(ninedof->accel_data.y,2)+pow(ninedof->accel_data.z,2)))*180/M_PI;
+		roll = atan2(ninedof->accel_data.y, sqrt(pow(ninedof->accel_data.x,2)+pow(ninedof->accel_data.y,2)+pow(ninedof->accel_data.z,2)))*180/M_PI;
 		
 		/*
 		write client reading to buffer

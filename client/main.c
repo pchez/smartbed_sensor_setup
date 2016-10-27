@@ -34,19 +34,6 @@ int client_handle_connection(int client_socket_fd, NINEDOF *ninedof)
 	double sec_since_epoch;
 
 	memset(buffer, 0, 256);
-	//sprintf(buffer, "time (epoch), accel_x, accel_y, accel_z, gyro_x, gyro_y, gyro_z, mag_x, mag_y, mag_z, temperature");
-
-	//n = write(client_socket_fd, buffer, strlen(buffer));
-	//if (n < 0) {
-	//	return client_error("ERROR writing to socket");
-	//}
-
-	//memset(buffer, 0, 256);
-
-	//n = read(client_socket_fd, buffer, 255);
-	//if (n < 0) {
-	//	return client_error("ERROR reading from socket");
-	//}
 
 	printf("msg from server: %s\n", buffer);
 
@@ -76,6 +63,15 @@ int client_handle_connection(int client_socket_fd, NINEDOF *ninedof)
   			ninedof->mag_data.x, ninedof->mag_data.y, ninedof->mag_data.z,
   			ninedof->temperature);
 		*/
+
+		/****************
+		//some control here based on Z axis accel (i.e. if accel >2gs, then someone sat
+		//in the bed or moved around, so start sending to server
+
+		if(ninedof->accel_data.z > 2) {
+		    sprintf(buffer, "%f,%f", pitch, roll)
+		}
+		*****************/
 		
 		//write pitch and roll to buffer
 		sprintf(buffer, "%f, %f", pitch, roll);
