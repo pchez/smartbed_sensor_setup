@@ -47,7 +47,6 @@ int client_handle_connection(int client_socket_fd, NINEDOF *ninedof)
 
 		// print client 9DOF readings 
 		//ninedof_print(ninedof);
-		
 		//calculate client 9DOF pitch and roll
 		pitch = -atan2(ninedof->accel_data.x, sqrt(pow(ninedof->accel_data.x,2)+pow(ninedof->accel_data.y,2)+pow(ninedof->accel_data.z,2)))*180/M_PI;
 		roll = atan2(ninedof->accel_data.y, sqrt(pow(ninedof->accel_data.x,2)+pow(ninedof->accel_data.y,2)+pow(ninedof->accel_data.z,2)))*180/M_PI;
@@ -68,13 +67,13 @@ int client_handle_connection(int client_socket_fd, NINEDOF *ninedof)
 		//some control here based on Z axis accel (i.e. if accel >2gs, then someone sat
 		//in the bed or moved around, so start sending to server
 		*/////
-		if(ninedof->accel_data.z > 1 || ninedof->accel_data.z < -1) {
-		    sprintf(buffer, "%f,%f", pitch, roll);
-		}
+		//if(ninedof->accel_data.z > 1 || ninedof->accel_data.z < -1) {
+		//    sprintf(buffer, "%f,%f", pitch, roll);
+		//}
 		/*****************/
 		
 		//write pitch and roll to buffer
-		//sprintf(buffer, "%f, %f", pitch, roll);
+		sprintf(buffer, "%f, %f", pitch, roll);
 
 		// send 9DOF reading to server
 		n = write(client_socket_fd, buffer, strlen(buffer));
@@ -92,6 +91,7 @@ int client_handle_connection(int client_socket_fd, NINEDOF *ninedof)
 
 		// print the message from server
 		printf("msg from server: %s\n", buffer);
+		//printf("%f\n", ninedof->accel_data.z);
 		usleep(10000);
 	}
 	close(client_socket_fd);
