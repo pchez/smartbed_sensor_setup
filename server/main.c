@@ -57,12 +57,12 @@ void* manage_9dof(void *arg)
 
 	mraa_init();
 
-	FILE *fp;
-	fp = fopen("./server_test_data.csv", "w");
+	//FILE *fp;
+	//fp = fopen("./server_test_data.csv", "w");
 
 	//write header to file "test_data.csv"
-	fprintf(fp, "time (epoch), accel_x, accel_y, accel_z, gyro_x, gyro_y, gyro_z, mag_x, mag_y, mag_z, temperature");
-	fclose(fp);
+	//fprintf(fp, "time (epoch), accel_x, accel_y, accel_z, gyro_x, gyro_y, gyro_z, mag_x, mag_y, mag_z, temperature");
+	//fclose(fp);
 	
 	// 9DOF sensor initialization
 	ninedof = ninedof_init(A_SCALE_4G, G_SCALE_245DPS, M_SCALE_2GS);
@@ -71,9 +71,17 @@ void* manage_9dof(void *arg)
 		// timestamp right before reading 9DOF data
 		sec_since_epoch = timestamp();
 		ninedof_read(ninedof);
+		
+		//store 9dof data into struct
+		sensors.accel_data_x[4] = ninedof->accel_data.x;
+		sensors.accel_data_y[4] = ninedof->accel_data.y;
+		sensors.accel_data_z[4] = ninedof->accel_data.z;
 
+		sensors.gyro_data_x[4] = ninedof->accel_data.x;
+		sensors.gyro_data_y[4] = ninedof->accel_data.y;
+		sensors.gyro_data_z[4] = ninedof->accel_data.z;
 		// append 9DOF data with timestamp to file "server_test_data.csv"
-		fp = fopen("./server_test_data.csv", "a");
+		/*fp = fopen("./server_test_data.csv", "a");
 		fprintf(fp, "%10.10f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f\n", sec_since_epoch,
 		ninedof->accel_data.x, ninedof->accel_data.y, ninedof->accel_data.z,
 		ninedof->gyro_data.x - ninedof->gyro_offset.x, 
@@ -81,7 +89,7 @@ void* manage_9dof(void *arg)
   		ninedof->gyro_data.z - ninedof->gyro_offset.z,
   		ninedof->mag_data.x, ninedof->mag_data.y, ninedof->mag_data.z,
   		ninedof->temperature);
-		fclose(fp);
+		fclose(fp);*/
 
 		// print server 9DOF data
 	//	ninedof_print(ninedof);
@@ -174,7 +182,7 @@ void* handle_client(void *arg)
 				
 		//float sum;
 	    //printf("SUM: %f\n", sensors.accel_data_x[index]+sensors.accel_data_y[index]);	
-	    printf("client_data contains: thread1=[%f, %f] thread2=[%f, %f], thread3=[%f, %f], thread4=[%f, %f]\n\n", sensors.accel_data_x[0], sensors.accel_data_y[0], sensors.accel_data_x[1], sensors.accel_data_y[1], sensors.accel_data_x[2], sensors.accel_data_y[2], sensors.accel_data_x[3], sensors.accel_data_y[3]);
+	    printf("client_data contains: thread1=[%f, %f] thread2=[%f, %f], thread3=[%f, %f], thread4=[%f, %f], serverData_[%f, %f]\n\n", sensors.accel_data_x[0], sensors.accel_data_y[0], sensors.accel_data_x[1], sensors.accel_data_y[1], sensors.accel_data_x[2], sensors.accel_data_y[2], sensors.accel_data_x[3], sensors.accel_data_y[3], sensors.accel_data_x[4], sensors.accel_data_y[4]);
 	}
 
 	close(client_socket_fd);
