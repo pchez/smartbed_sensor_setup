@@ -4,7 +4,7 @@
 #include <sys/types.h>
 #include <signal.h>
 #include <pthread.h>
-
+#include <math.h>
 #include "server.h"
 #include "9DOF.h"
 #include "LSM9DS0.h"
@@ -37,15 +37,8 @@ double timestamp()
 typedef struct client_data 
 {
 	char* clientIP;
-	float accel_data_x[5];
-	float accel_data_y[5];
-	float accel_data_z[5];
-	
-	float gyro_data_x[5];
-	float gyro_data_y[5];
-	float gyro_data_z[5];
-	
-	
+	float pitch[5];
+	float roll[5];
 } client_data;
 
 client_data sensors = {.clientIP = "ip"};
@@ -76,7 +69,9 @@ void* manage_9dof(void *arg)
 		pitch = -atan2(ninedof->accel_data.x, sqrt(pow(ninedof->accel_data.x,2)+pow(ninedof->accel_data.y,2)+pow(ninedof->accel_data.z,2)))*180/M_PI;
 		roll = atan2(ninedof->accel_data.y, sqrt(pow(ninedof->accel_data.x,2)+pow(ninedof->accel_data.y,2)+pow(ninedof->accel_data.z,2)))*180/M_PI;
 		
-		
+		//store pitch and roll into struct
+		sensors.pitch[4] = pitch;
+		sensors.roll[4] = roll;
 		
 		//store 9dof data into struct
 		/*
@@ -186,12 +181,12 @@ void* handle_client(void *arg)
 		p = strtok(buffer,",");
 		if(p) {
     			//printf("\nFirst string: %f\n",atof(p));
-			sensors.accel_data_x[index] = atof(p);
+			sensors.pitch[index] = atof(p);
 			//printf("First string: %f\n", sensors.accel_data_x[index]);
 		}
 		p = strtok(NULL,",");
 		if(p) {
-		    	sensors.accel_data_y[index] = atof(p);
+		    	sensors.roll[index] = atof(p);
     			//printf("Next string: %f\n",sensors.accel_data_y[index]);
 		}
 				
