@@ -72,7 +72,14 @@ void* manage_9dof(void *arg)
 		sec_since_epoch = timestamp();
 		ninedof_read(ninedof);
 		
+		//calculate pitch and roll
+		pitch = -atan2(ninedof->accel_data.x, sqrt(pow(ninedof->accel_data.x,2)+pow(ninedof->accel_data.y,2)+pow(ninedof->accel_data.z,2)))*180/M_PI;
+		roll = atan2(ninedof->accel_data.y, sqrt(pow(ninedof->accel_data.x,2)+pow(ninedof->accel_data.y,2)+pow(ninedof->accel_data.z,2)))*180/M_PI;
+		
+		
+		
 		//store 9dof data into struct
+		/*
 		sensors.accel_data_x[4] = ninedof->accel_data.x;
 		sensors.accel_data_y[4] = ninedof->accel_data.y;
 		sensors.accel_data_z[4] = ninedof->accel_data.z;
@@ -80,6 +87,8 @@ void* manage_9dof(void *arg)
 		sensors.gyro_data_x[4] = ninedof->accel_data.x;
 		sensors.gyro_data_y[4] = ninedof->accel_data.y;
 		sensors.gyro_data_z[4] = ninedof->accel_data.z;
+		*/
+		
 		// append 9DOF data with timestamp to file "server_test_data.csv"
 		/*fp = fopen("./server_test_data.csv", "a");
 		fprintf(fp, "%10.10f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f\n", sec_since_epoch,
@@ -188,7 +197,7 @@ void* handle_client(void *arg)
 				
 		//float sum;
 	    //printf("SUM: %f\n", sensors.accel_data_x[index]+sensors.accel_data_y[index]);	
-	    printf("client_data contains: thread1=[%f, %f] thread2=[%f, %f], thread3=[%f, %f], thread4=[%f, %f], serverData_[%f, %f]\n\n", sensors.accel_data_x[0], sensors.accel_data_y[0], sensors.accel_data_x[1], sensors.accel_data_y[1], sensors.accel_data_x[2], sensors.accel_data_y[2], sensors.accel_data_x[3], sensors.accel_data_y[3], sensors.accel_data_x[4], sensors.accel_data_y[4]);
+	    printf("client_data contains: thread1=[%f, %f] thread2=[%f, %f], thread3=[%f, %f], thread4=[%f, %f], serverData_[%f, %f]\n\n", sensors.pitch[0], sensors.roll[0], sensors.pitch[1], sensors.roll[1], sensors.pitch[2], sensors.roll[2], sensors.pitch[3], sensors.roll[3], sensors.pitch[4], sensors.roll[4]);
 	}
 
 	close(client_socket_fd);
