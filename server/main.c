@@ -4,7 +4,7 @@
 #include <sys/types.h>
 #include <signal.h>
 #include <pthread.h>
-
+#include <math.h>
 #include "server.h"
 #include "9DOF.h"
 #include "LSM9DS0.h"
@@ -37,15 +37,8 @@ double timestamp()
 typedef struct client_data 
 {
 	char* clientIP;
-	float accel_data_x[5];
-	float accel_data_y[5];
-	float accel_data_z[5];
-	
-	float gyro_data_x[5];
-	float gyro_data_y[5];
-	float gyro_data_z[5];
-	
-	
+	float pitch[5];
+	float roll[5];
 } client_data;
 
 client_data sensors = {.clientIP = "ip"};
@@ -54,7 +47,7 @@ void* manage_9dof(void *arg)
 {
 	NINEDOF *ninedof;
 	double sec_since_epoch;
-
+	float pitch, roll;
 	mraa_init();
 
 	//FILE *fp;
@@ -72,7 +65,16 @@ void* manage_9dof(void *arg)
 		sec_since_epoch = timestamp();
 		ninedof_read(ninedof);
 		
+		//calculate pitch and roll
+		pitch = -atan2(ninedof->accel_data.x, sqrt(pow(ninedof->accel_data.x,2)+pow(ninedof->accel_data.y,2)+pow(ninedof->accel_data.z,2)))*180/M_PI;
+		roll = atan2(ninedof->accel_data.y, sqrt(pow(ninedof->accel_data.x,2)+pow(ninedof->accel_data.y,2)+pow(ninedof->accel_data.z,2)))*180/M_PI;
+		
+		//store pitch and roll into struct
+		sensors.pitch[4] = pitch;
+		sensors.roll[4] = roll;
+		
 		//store 9dof data into struct
+		/*
 		sensors.accel_data_x[4] = ninedof->accel_data.x;
 		sensors.accel_data_y[4] = ninedof->accel_data.y;
 		sensors.accel_data_z[4] = ninedof->accel_data.z;
@@ -80,6 +82,8 @@ void* manage_9dof(void *arg)
 		sensors.gyro_data_x[4] = ninedof->accel_data.x;
 		sensors.gyro_data_y[4] = ninedof->accel_data.y;
 		sensors.gyro_data_z[4] = ninedof->accel_data.z;
+		*/
+		
 		// append 9DOF data with timestamp to file "server_test_data.csv"
 		/*fp = fopen("./server_test_data.csv", "a");
 		fprintf(fp, "%10.10f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f\n", sec_since_epoch,
@@ -133,11 +137,17 @@ void* handle_client(void *arg)
 			printf("%s has terminated the connection.\n", client->ip_addr_str);
 			return NULL;
 		}
+		/*if (n==0) {
+		    printf("Waiting for client data\n");
+		}*/
 
 		// print the message to console
 		printf("%s says: %s ||| index: %d\n", client->ip_addr_str, buffer, index);
 		
 		// send an acknowledgement back to the client saying that we received the message
+		
+		//no need to send data back to client at this point
+
 		memset(tmp, 0, sizeof(tmp));
 		sprintf(tmp, "%s sent the server: %s", client->ip_addr_str, buffer);
 		n = write(client_socket_fd, tmp, strlen(tmp));
@@ -171,18 +181,18 @@ void* handle_client(void *arg)
 		p = strtok(buffer,",");
 		if(p) {
     			//printf("\nFirst string: %f\n",atof(p));
-			sensors.accel_data_x[index] = atof(p);
+			sensors.pitch[index] = atof(p);
 			//printf("First string: %f\n", sensors.accel_data_x[index]);
 		}
 		p = strtok(NULL,",");
 		if(p) {
-		    	sensors.accel_data_y[index] = atof(p);
+		    	sensors.roll[index] = atof(p);
     			//printf("Next string: %f\n",sensors.accel_data_y[index]);
 		}
 				
 		//float sum;
 	    //printf("SUM: %f\n", sensors.accel_data_x[index]+sensors.accel_data_y[index]);	
-	    printf("client_data contains: thread1=[%f, %f] thread2=[%f, %f], thread3=[%f, %f], thread4=[%f, %f], serverData_[%f, %f]\n\n", sensors.accel_data_x[0], sensors.accel_data_y[0], sensors.accel_data_x[1], sensors.accel_data_y[1], sensors.accel_data_x[2], sensors.accel_data_y[2], sensors.accel_data_x[3], sensors.accel_data_y[3], sensors.accel_data_x[4], sensors.accel_data_y[4]);
+	    printf("client_data contains: thread1=[%f, %f] thread2=[%f, %f], thread3=[%f, %f], thread4=[%f, %f], serverData_[%f, %f]\n\n", sensors.pitch[0], sensors.roll[0], sensors.pitch[1], sensors.roll[1], sensors.pitch[2], sensors.roll[2], sensors.pitch[3], sensors.roll[3], sensors.pitch[4], sensors.roll[4]);
 	}
 
 	close(client_socket_fd);
