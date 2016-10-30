@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <string.h>
-
+#include "floatfann.h"
 #include <sys/types.h>
 #include <signal.h>
 #include <pthread.h>
@@ -36,18 +36,18 @@ double timestamp()
 
 typedef struct client_data 
 {
-	char* clientIP;
 	float pitch[5];
 	float roll[5];
+	
 } client_data;
 
-client_data sensors = {.clientIP = "ip"};
+client_data sensors = {.pitch[0] = 0.0, .pitch[1] = 0.0, .pitch[2] = 0.0, .pitch[3] = 0.0, .pitch[4] = 0.0, .roll[0] = 0.0, .roll[1] = 0.0, .roll[2] = 0.0, .roll[3] = 0.0, .roll[4] = 0.0};
 
 void* manage_9dof(void *arg) 
 {
 	NINEDOF *ninedof;
 	double sec_since_epoch;
-
+	float pitch, roll;
 	mraa_init();
 
 	//FILE *fp;
@@ -243,9 +243,16 @@ int main(int argc, char **argv)
 {
 	pthread_t manage_9dof_tid, manage_server_tid;
 	int rc;
+	int max;
+	int i;
+	fann_type input[4];
+	fann_type *output;
+	int patient_location; //0 left - 1 middle - 2 right
+	struct fann *ann;
 
 	signal(SIGINT, do_when_interrupted);
-
+	ann = fann_create_from_file("TEST.net");
+	
 	//initialize the mutex
 	if (pthread_mutex_init(&lock, NULL)!=0)
 	{
@@ -269,6 +276,29 @@ int main(int argc, char **argv)
 	pthread_join(manage_9dof_tid, NULL);
 	pthread_join(manage_server_tid, NULL);
 
+	while(1)
+	{
+		//run through neural network
+		input[0] = sensors.pitch[0];
+		input[1] = sensors.pitch[1];
+		input[2] = sensors.roll[0];
+		input[3] = sensors.roll[1];
+		
+		output = fann_run(ann, input);
+		
+		//find max to determine output
+		max = -1000;
+		for (i = 0; i < 3; i++)
+		{
+			if (output[i] > max)
+			{
+				max = output[i];
+				patient_location = i;
+			}
+		}
+		printf("Patient is at location: %d\n", patient_location);
+		
+	}
 	printf("\n...cleanup operations complete. Exiting main.\n");
 
 	return 0;
