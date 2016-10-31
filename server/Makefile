@@ -1,6 +1,6 @@
 CC=gcc
-CFLAGS=-c
-LDFLAGS=-lmraa -lm -pthread
+CFLAGS=-c -Wall
+LDFLAGS=-lmraa -lm -lfann -pthread
 SOURCES=main.c 9DOF.c server.c LSM9DS0.c
 OBJECTS=$(SOURCES:.c=.o)
 EXECUTABLE=server
@@ -16,6 +16,7 @@ $(EXECUTABLE): $(OBJECTS)
 clean:
 	rm -rf $(EXECUTABLE)
 	rm -rf $(OBJECTS)
+	rm -rf TEST.net
 
 clobber: clean
 	rm -rf *~

@@ -12,7 +12,7 @@
 #define PORTNO 5000
 
 static volatile int run_flag = 1;
-extern shared_array_index = 0;
+int shared_array_index = 0;
 pthread_mutex_t lock;
 
 void do_when_interrupted()
@@ -204,11 +204,16 @@ void* manage_server(void *arg)
 	CONNECTION *server;
 	CONNECTION *client;
 	int max_connections;
-	int i;
+	int i, n;
 	pthread_t tids[256];
-
+	int max;
+	fann_type input[4];
+	fann_type *output;
+	int patient_location; //0 left - 1 middle - 2 right
+	struct fann *ann;
+	
 	max_connections = 10;
-
+	
 	server = (CONNECTION *) server_init(PORTNO, 10);
 	if ((int) server == -1){
 		run_flag = 0;
@@ -216,6 +221,8 @@ void* manage_server(void *arg)
 
 	i = -1;
 
+	ann = fann_create_from_file("TEST.net");
+	
 	while(i < max_connections && run_flag) {
 		client = (CONNECTION*) server_accept_connection(server->sockfd);
 		if ((int) client == -1) {
@@ -225,6 +232,28 @@ void* manage_server(void *arg)
 			i++;
 			pthread_create(&tids[i], NULL, handle_client, (void *)client);
 		}
+		
+		//run through neural network
+		input[0] = sensors.pitch[0];
+		input[1] = sensors.pitch[1];
+		input[2] = sensors.roll[0];
+		input[3] = sensors.roll[1];
+		
+		output = fann_run(ann, input);
+		
+		//find max to determine output
+		max = -1000;
+		for (n = 0; n < 3; n++)
+		{
+			if (output[n] > max)
+			{
+				max = output[n];
+				patient_location = n;
+			}
+		}
+		printf("Patient is at location: %d\n", patient_location);
+		
+		
 	}
 
 	if (i >= max_connections) {
@@ -243,15 +272,8 @@ int main(int argc, char **argv)
 {
 	pthread_t manage_9dof_tid, manage_server_tid;
 	int rc;
-	int max;
-	int i;
-	fann_type input[4];
-	fann_type *output;
-	int patient_location; //0 left - 1 middle - 2 right
-	struct fann *ann;
-
+	
 	signal(SIGINT, do_when_interrupted);
-	ann = fann_create_from_file("TEST.net");
 	
 	//initialize the mutex
 	if (pthread_mutex_init(&lock, NULL)!=0)
@@ -276,29 +298,7 @@ int main(int argc, char **argv)
 	pthread_join(manage_9dof_tid, NULL);
 	pthread_join(manage_server_tid, NULL);
 
-	while(1)
-	{
-		//run through neural network
-		input[0] = sensors.pitch[0];
-		input[1] = sensors.pitch[1];
-		input[2] = sensors.roll[0];
-		input[3] = sensors.roll[1];
-		
-		output = fann_run(ann, input);
-		
-		//find max to determine output
-		max = -1000;
-		for (i = 0; i < 3; i++)
-		{
-			if (output[i] > max)
-			{
-				max = output[i];
-				patient_location = i;
-			}
-		}
-		printf("Patient is at location: %d\n", patient_location);
-		
-	}
+
 	printf("\n...cleanup operations complete. Exiting main.\n");
 
 	return 0;
